@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的極簡多益單字卡 - Day 01</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f2f4f7; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+    .container { width: 100%; max-width: 420px; }
+    
+    .settings-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); font-size: 14px; font-weight: bold; color: #4a5568; }
+    .switch-container { display: flex; align-items: center; gap: 8px; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e0; transition: .3s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: #5B7B9A; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+    .tab-btn { flex: 1; padding: 10px 0; border: none; background: #e2e8f0; border-radius: 8px; font-weight: bold; cursor: pointer; color: #4a5568; font-size: 13px; transition: 0.2s; }
+    .tab-btn.active { background: #5B7B9A; color: white; box-shadow: 0 2px 6px rgba(91, 123, 154, 0.3); }
+
+    .card { background: white; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); padding: 24px; text-align: left; position: relative; }
+
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
+    .badge-easy { background: #e6f4ea; color: #2e7d32; }
+    .badge-review { background: #fef7e0; color: #b78103; }
+    .badge-hard { background: #fce8e6; color: #c62828; }
+
+    .word-container { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; margin: 20px 0 16px 0; }
+    .word-title { font-size: 36px; font-weight: bold; color: #2d3748; margin: 0; text-align: center; width: 100%; }
+    
+    .audio-btn-inline { position: absolute; left: 0; background: #f7fafc; color: #5B7B9A; border: 1.5px solid #e2e8f0; width: 36px; height: 36px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); z-index: 2; }
+    .audio-btn-inline:hover { background: #edf2f7; border-color: #cbd5e0; }
+    .audio-btn-inline:active { transform: scale(0.92); background: #e2e8f0; }
+
+    .toggle-chinese-btn { background: #f0f7f7; border: 1.5px dashed #a3c4c4; width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; color: #437070; cursor: pointer; margin-top: 8px; font-size: 14px; transition: 0.2s; }
+    .toggle-chinese-btn:active { background: #e1f0f0; }
+
+    .details-box { display: none; text-align: left; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+    .pos-meaning { font-size: 18px; color: #c53030; font-weight: bold; margin-bottom: 12px; }
+    .example-box { background: #f7fafc; border-left: 4px solid #5B7B9A; padding: 12px; border-radius: 4px; }
+    .ex-en { font-weight: 600; color: #2d3748; font-size: 15px; margin-bottom: 4px; }
+    .ex-zh { color: #718096; font-size: 14px; }
+
+    .difficulty-group { display: flex; gap: 8px; margin-top: 20px; }
+    .diff-btn { flex: 1; padding: 10px 0; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; }
+    .btn-review { background: #feefc3; color: #8c5000; }
+    .btn-hard { background: #fad2cf; color: #a50e0e; }
+    .btn-easy { background: #ceead6; color: #0d652d; }
+
+    .nav-btn { background: #5B7B9A; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 16px; box-shadow: 0 4px 12px rgba(91, 123, 154, 0.25); transition: 0.2s; }
+    .nav-btn:active { background: #4A6782; transform: scale(0.99); }
+    
+    .reset-btn { background: transparent; border: none; color: #a0aec0; text-decoration: underline; font-size: 12px; margin-top: 12px; cursor: pointer; width: 100%; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="settings-bar">
+    <span>🔊 語音播放模式</span>
+    <div class="switch-container">
+      <span id="toggleText">自動播放</span>
+      <label class="switch">
+        <input type="checkbox" id="autoPlayToggle" checked onchange="toggleAutoPlayText()">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button id="tab-all" class="tab-btn active" onclick="selectTab('all')">全部 (<span id="cnt-all">0</span>)</button>
+    <button id="tab-review" class="tab-btn" onclick="selectTab('review')">再次複習 (<span id="cnt-review">0</span>)</button>
+    <button id="tab-hard" class="tab-btn" onclick="selectTab('hard')">困難 (<span id="cnt-hard">0</span>)</button>
+    <button id="tab-easy" class="tab-btn" onclick="selectTab('easy')">簡易 (<span id="cnt-easy">0</span>)</button>
+  </div>
+
+  <div class="card">
+    <div style="text-align: center;">
+      <div id="statusBadge" class="status-badge badge-review">再次複習</div>
+    </div>
+    
+    <div class="word-container">
+      <button class="audio-btn-inline" onclick="playAudio()" title="播放發音">🔊</button>
+      <div id="word" class="word-title">---</div>
+    </div>
+
+    <button class="toggle-chinese-btn" onclick="toggleDetails()">✨ 點我看翻譯與例句</button>
+    
+    <div id="detailsBox" class="details-box">
+      <div id="meaning" class="pos-meaning"></div>
+      <div class="example-box">
+        <div id="exEn" class="ex-en"></div>
+        <div id="exZh" class="ex-zh"></div>
+      </div>
+    </div>
+
+    <div class="difficulty-group">
+      <button class="diff-btn btn-review" onclick="setDifficulty('review')">再次複習</button>
+      <button class="diff-btn btn-hard" onclick="setDifficulty('hard')">困難</button>
+      <button class="diff-btn btn-easy" onclick="setDifficulty('easy')">簡易</button>
+    </div>
+  </div>
+
+  <button class="nav-btn" onclick="nextCard()">下一張卡片 ➔</button>
+  <button class="reset-btn" onclick="resetProgress()">🔄 重置所有學習紀錄</button>
+</div>
+
+<script>
+  // ==========================================
+  // 【單字資料區】Day 01 全部 40 個單字
+  // ==========================================
+  var vocabulary = [
+    { id: 1, word: "résumé", meaning: "n. 履歷表", exEn: "Fax your résumé and cover letter to the above number.", exZh: "請把你的履歷表和求職信傳真到上面的號碼。", level: "review" },
+    { id: 2, word: "opening", meaning: "n. 空缺，職缺；開張，開始", exEn: "There are several job openings at the restaurant right now.", exZh: "那間餐廳目前有幾個職缺。", level: "review" },
+    { id: 3, word: "applicant", meaning: "n. 申請者；應徵者", exEn: "Applicants are required to submit a résumé.", exZh: "應徵者必須提交一份履歷表。", level: "review" },
+    { id: 4, word: "requirement", meaning: "n. 必要條件", exEn: "A driver's license is a requirement of this job.", exZh: "駕照是這份工作的必要條件。", level: "review" },
+    { id: 5, word: "meet", meaning: "v. 滿足，符合（要求、條件等）", exEn: "Applicants must meet all the requirements for the job.", exZh: "應徵者必須符合這份工作的所有必要條件。", level: "review" },
+    { id: 6, word: "qualified", meaning: "adj. 有資格的；勝任的", exEn: "People with master's degrees are qualified for the research position.", exZh: "有碩士學位的人有擔任研究工作職位的資格。", level: "review" },
+    { id: 7, word: "candidate", meaning: "n. 候選人；應徵者", exEn: "Five candidates will be selected for final interviews.", exZh: "將有五位應徵者獲選參加最終面試。", level: "review" },
+    { id: 8, word: "confidence", meaning: "n. 信心，自信；信任", exEn: "We have confidence that she can handle the position.", exZh: "我們有信心她能勝任這個職位。", level: "review" },
+    { id: 9, word: "highly", meaning: "adv. 很，非常", exEn: "Mr. Monroe's experience makes him highly qualified for the job.", exZh: "Monroe 先生的經歷使他非常適合這份工作。", level: "review" },
+    { id: 10, word: "professional", meaning: "adj. 專業的，職業的 / n. 專家", exEn: "Jeff is known as a professional photographer.", exZh: "Jeff 以職業攝影師的身分為人所知。", level: "review" },
+    { id: 11, word: "interview", meaning: "n. 面試 / v. 面試", exEn: "The interviews are being held in meeting room three.", exZh: "面試正在第三會議室舉行。", level: "review" },
+    { id: 12, word: "hire", meaning: "v. 僱用", exEn: "The company expects to hire several new employees next month.", exZh: "公司預計下個月僱用幾名新員工。", level: "review" },
+    { id: 13, word: "training", meaning: "n. 訓練", exEn: "This company offers on-the-job training for new staff.", exZh: "這間公司為新員工提供實地訓練。", level: "review" },
+    { id: 14, word: "reference", meaning: "n. 推薦信；參考", exEn: "Philip asked his previous employer to write a reference letter for him.", exZh: "Philip 請他的前雇主為他寫一封推薦信。", level: "review" },
+    { id: 15, word: "position", meaning: "n. 職位；位置 / v. 放置", exEn: "The advertised position provides health care and other benefits.", exZh: "廣告上的職位提供醫療保健和其他福利。", level: "review" },
+    { id: 16, word: "achievement", meaning: "n. 成就；達成", exEn: "List all of your achievements from previous jobs on your résumé.", exZh: "請在你的履歷表中列出之前工作中的所有成就。", level: "review" },
+    { id: 17, word: "impressed", meaning: "adj. 感到印象深刻的", exEn: "The CEO was impressed by his assistant's organizing skills.", exZh: "執行長對他助理的組織能力感到印象深刻。", level: "review" },
+    { id: 18, word: "excellent", meaning: "adj. 優秀的，傑出的", exEn: "Because of her excellent managerial skills, Erin was hired for the job.", exZh: "Erin 因為她優秀的管理能力而被僱來做那份工作。", level: "review" },
+    { id: 19, word: "eligible", meaning: "adj. 有資格的；合適的", exEn: "The part-time workers are also eligible for paid holidays.", exZh: "兼職員工也有資格獲得帶薪休假。", level: "review" },
+    { id: 20, word: "identify", meaning: "v. 辨認，認出", exEn: "Staff members wear uniforms so that they are easy for customers to identify.", exZh: "員工穿著制服，以讓顧客們能輕易認出他們。", level: "review" },
+    { id: 21, word: "associate", meaning: "v. 使有關聯", exEn: "Two of the applicants were associated with a competitor.", exZh: "其中兩名應徵者和一個競爭對手有關聯。", level: "review" },
+    { id: 22, word: "condition", meaning: "n. 條件", exEn: "The conditions of employment are listed in the job opening notice.", exZh: "僱用的條件列在職缺公告裡了。", level: "review" },
+    { id: 23, word: "employment", meaning: "n. 僱用", exEn: "The company announced employment opportunities in personnel department.", exZh: "公司宣布了人事部門的僱用（工作）機會。", level: "review" },
+    { id: 24, word: "lack", meaning: "v. 缺乏 / n. 缺乏", exEn: "Carl lacked the ability to get along well with his coworkers.", exZh: "Carl 缺乏與同事融洽相處的能力。", level: "review" },
+    { id: 25, word: "managerial", meaning: "adj. 管理的", exEn: "Mike is seeking a managerial position in the accounting field.", exZh: "Mike 正在尋找會計領域的管理職。", level: "review" },
+    { id: 26, word: "diligent", meaning: "adj. 勤奮的", exEn: "Carmen is one of the most diligent workers in the company.", exZh: "Carmen 是公司裡最勤奮的員工之一。", level: "review" },
+    { id: 27, word: "familiar", meaning: "adj. 熟悉的，親近的", exEn: "Staff must review the handbook to become familiar with it.", exZh: "員工必須複習手冊以熟悉內容。", level: "review" },
+    { id: 28, word: "proficiency", meaning: "n. 熟練，精通", exEn: "Overseas workers need proof of proficiency in a second language.", exZh: "海外員工需要有精通第二語言的證明。", level: "review" },
+    { id: 29, word: "prospective", meaning: "adj. 預期的；未來的", exEn: "Prospective employees were asked to come in for a second interview.", exZh: "有可能成為員工的人都被要求前來參加二次面試。", level: "review" },
+    { id: 30, word: "appeal", meaning: "v. 呼籲；有吸引力", exEn: "The 10 percent pay increase appealed to the staff.", exZh: "百分之 10 的加薪對員工很有吸引力。", level: "review" },
+    { id: 31, word: "specialize", meaning: "v. 專攻，專門從事", exEn: "Most of the programmers specialized in software design in college.", exZh: "這些程式設計師大部分在大學時期專攻軟體設計。", level: "review" },
+    { id: 32, word: "apprehensive", meaning: "adj. 擔心的，憂慮的", exEn: "Many people feel apprehensive before an important job interview.", exZh: "許多人在重要的工作面試前會感到憂慮。", level: "review" },
+    { id: 33, word: "consultant", meaning: "n. 顧問", exEn: "Emma currently works in London as an interior design consultant.", exZh: "Emma 目前在倫敦擔任室內設計顧問。", level: "review" },
+    { id: 34, word: "entitle", meaning: "v. 給（某人）權利", exEn: "Executives are entitled to additional benefits.", exZh: "主管有獲得額外福利的權利。", level: "review" },
+    { id: 35, word: "degree", meaning: "n. 學位", exEn: "A bachelor's degree in engineering is a requirement for this position.", exZh: "工程學士學位是這個職位的必要條件。", level: "review" },
+    { id: 36, word: "payroll", meaning: "n. 薪水帳冊，發薪名單", exEn: "Fifteen new employees were added to the payroll last month.", exZh: "15 名新員工上個月被加進發薪名單裡了。", level: "review" },
+    { id: 37, word: "recruit", meaning: "v. 招募（新進人員等）", exEn: "The firm recruits promising graduates on a yearly basis.", exZh: "這間公司每年會招募前景看好的畢業生。", level: "review" },
+    { id: 38, word: "certification", meaning: "n.（資格）證明", exEn: "Obtaining accounting certification takes approximately a year.", exZh: "取得會計證照大約需要一年。", level: "review" },
+    { id: 39, word: "occupation", meaning: "n. 職業", exEn: "Journalism is an interesting and challenging occupation.", exZh: "新聞業是一種既有趣又具有挑戰性的職業。", level: "review" },
+    { id: 40, word: "wage", meaning: "n. 工資，薪水", exEn: "Workers with formal education may earn higher wages than those without.", exZh: "受過正式教育的勞工，可能會比沒受過正式教育的勞工獲得更高的薪水。", level: "review" }
+  ];
+
+  var STORAGE_KEY = 'toeic_vocab_day01_fixed_v6';
+  var currentFilter = 'all';
+  var filteredList = [];
+  var currentIndex = 0;
+
+  function loadProgress() {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        var savedLevels = JSON.parse(saved);
+        for (var i = 0; i < vocabulary.length; i++) {
+          if (savedLevels[vocabulary[i].id]) {
+            vocabulary[i].level = savedLevels[vocabulary[i].id];
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
+  function saveProgress() {
+    var savedLevels = {};
+    for (var i = 0; i < vocabulary.length; i++) {
+      savedLevels[vocabulary[i].id] = vocabulary[i].level;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedLevels));
+  }
+
+  function resetProgress() {
+    if (confirm("確定要重置 Day 01 所有單字的學習分類嗎？")) {
+      localStorage.removeItem(STORAGE_KEY);
+      for (var i = 0; i < vocabulary.length; i++) {
+        vocabulary[i].level = 'review';
+      }
+      updateCounts();
+      applyFilter();
+    }
+  }
+
+  function toggleAutoPlayText() {
+    var chk = document.getElementById('autoPlayToggle');
+    document.getElementById('toggleText').innerText = chk.checked ? "自動播放" : "手動點擊";
+  }
+
+  function updateCounts() {
+    document.getElementById('cnt-all').innerText = vocabulary.length;
+    var rev = 0, hrd = 0, esy = 0;
+    for (var i = 0; i < vocabulary.length; i++) {
+      if (vocabulary[i].level === 'review') rev++;
+      else if (vocabulary[i].level === 'hard') hrd++;
+      else if (vocabulary[i].level === 'easy') esy++;
+    }
+    document.getElementById('cnt-review').innerText = rev;
+    document.getElementById('cnt-hard').innerText = hrd;
+    document.getElementById('cnt-easy').innerText = esy;
+  }
+
+  function selectTab(level) {
+    currentFilter = level;
+    document.getElementById('tab-all').className = 'tab-btn' + (level === 'all' ? ' active' : '');
+    document.getElementById('tab-review').className = 'tab-btn' + (level === 'review' ? ' active' : '');
+    document.getElementById('tab-hard').className = 'tab-btn' + (level === 'hard' ? ' active' : '');
+    document.getElementById('tab-easy').className = 'tab-btn' + (level === 'easy' ? ' active' : '');
+    applyFilter();
+  }
+
+  function applyFilter() {
+    filteredList = [];
+    if (currentFilter === 'all') {
+      for (var i = 0; i < vocabulary.length; i++) {
+        filteredList.push(vocabulary[i]);
+      }
+    } else {
+      for (var j = 0; j < vocabulary.length; j++) {
+        if (vocabulary[j].level === currentFilter) {
+          filteredList.push(vocabulary[j]);
+        }
+      }
+    }
+    currentIndex = 0;
+    renderCard();
+  }
+
+  function renderCard() {
+    document.getElementById('detailsBox').style.display = 'none';
+
+    if (filteredList.length === 0) {
+      document.getElementById('word').innerText = "無單字";
+      document.getElementById('statusBadge').innerText = "空";
+      document.getElementById('meaning').innerText = "";
+      document.getElementById('exEn').innerText = "";
+      document.getElementById('exZh').innerText = "";
+      return;
+    }
+
+    var data = filteredList[currentIndex];
+    document.getElementById('word').innerText = data.word;
+    document.getElementById('meaning').innerText = data.meaning;
+    document.getElementById('exEn').innerText = data.exEn;
+    document.getElementById('exZh').innerText = data.exZh;
+
+    var badge = document.getElementById('statusBadge');
+    if (data.level === 'easy') {
+      badge.innerText = "簡易"; badge.className = "status-badge badge-easy";
+    } else if (data.level === 'hard') {
+      badge.innerText = "困難"; badge.className = "status-badge badge-hard";
+    } else {
+      badge.innerText = "再次複習"; badge.className = "status-badge badge-review";
+    }
+
+    if (document.getElementById('autoPlayToggle').checked) {
+      playAudio();
+    }
+  }
+
+  function playAudio() {
+    if (filteredList.length === 0) return;
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        var word = filteredList[currentIndex].word;
+        var utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch(e) {}
+  }
+
+  function toggleDetails() {
+    if (filteredList.length === 0) return;
+    var box = document.getElementById('detailsBox');
+    box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
+  }
+
+  function setDifficulty(level) {
+    if (filteredList.length === 0) return;
+    var currentId = filteredList[currentIndex].id;
+    for (var i = 0; i < vocabulary.length; i++) {
+      if (vocabulary[i].id === currentId) {
+        vocabulary[i].level = level;
+        break;
+      }
+    }
+    
+    saveProgress();
+    updateCounts();
+    
+    if (currentFilter !== 'all') {
+      applyFilter();
+    } else {
+      renderCard();
+    }
+  }
+
+  function nextCard() {
+    if (filteredList.length === 0) return;
+    currentIndex = (currentIndex + 1) % filteredList.length;
+    renderCard();
+  }
+
+  function startApp() {
+    loadProgress();
+    updateCounts();
+    applyFilter();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startApp);
+  } else {
+    startApp();
+  }
+</script>
+
+</body>
+</html>
